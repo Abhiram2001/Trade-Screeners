@@ -96,6 +96,10 @@ _JOB1_COLUMNS = [
     "market_cap_basic", # 9  Market cap
     "sector",           # 10 Sector
     "change",           # 11 Daily % change
+    "high",             # 12 Last market day High
+    "low",              # 13 Last market day Low
+    "high|1W",          # 14 Last week High
+    "low|1W",           # 15 Last week Low
 ]
 
 _JOB1_FILTERS = [
@@ -160,6 +164,10 @@ def run_job1(universe: set, sp500_n: int, ndx_n: int) -> list[dict]:
                 "MarketCap_B": round(mktcap / 1e9, 1) if mktcap else None,
                 "Sector":      d[10] or "",
                 "Change%":     round(d[11], 2) if d[11] is not None else None,
+                "Day_High":    round(d[12], 2) if d[12] else None,
+                "Day_Low":     round(d[13], 2) if d[13] else None,
+                "Week_High":   round(d[14], 2) if d[14] else None,
+                "Week_Low":    round(d[15], 2) if d[15] else None,
             })
         except Exception:
             continue
@@ -172,7 +180,7 @@ def run_job1(universe: set, sp500_n: int, ndx_n: int) -> list[dict]:
     print(f"  Watchlist saved  → {WATCHLIST_FILE}")
 
     _print_console(results, "JOB 1 — Potential_Bullish_1",
-                   ["Symbol","Company","Price","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","Sector"])
+                   ["Symbol","Company","Price","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","Day_High","Day_Low","Week_High","Week_Low","Sector"])
     _save_html(results, job_name="Potential_Bullish_1", job_num=1,
                universe_label=f"S&P 500 ({sp500_n}) + Nasdaq 100 ({ndx_n})",
                conditions=[
@@ -198,6 +206,10 @@ _JOB2_COLUMNS = [
     "market_cap_basic", # 9
     "sector",           # 10
     "change",           # 11
+    "high",             # 12 Last market day High
+    "low",              # 13 Last market day Low
+    "high|1W",          # 14 Last week High
+    "low|1W",           # 15 Last week Low
 ]
 
 # Crossover: close crossed EMA20 today (both directions) → filter to upward cross client-side
@@ -264,6 +276,10 @@ def run_job2(universe: set, sp500_n: int, ndx_n: int) -> list[dict]:
                 "MarketCap_B": round(mktcap / 1e9, 1) if mktcap else None,
                 "Sector":      d[10] or "",
                 "Change%":     round(d[11], 2) if d[11] is not None else None,
+                "Day_High":    round(d[12], 2) if d[12] else None,
+                "Day_Low":     round(d[13], 2) if d[13] else None,
+                "Week_High":   round(d[14], 2) if d[14] else None,
+                "Week_Low":    round(d[15], 2) if d[15] else None,
             })
         except Exception:
             continue
@@ -271,7 +287,7 @@ def run_job2(universe: set, sp500_n: int, ndx_n: int) -> list[dict]:
     print(f"\n  EMA 20 crossovers found : {len(results)} stocks ✓")
 
     _print_console(results, "JOB 2 — Bullish_1_20ema",
-                   ["Symbol","Company","Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","RSI_1D","Change%","Sector"])
+                   ["Symbol","Company","Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","RSI_1D","Change%","Day_High","Day_Low","Week_High","Week_Low","Sector"])
     _save_html(results, job_name="Bullish_1_20ema", job_num=2,
                universe_label=f"Job 1 watchlist ({len(job1_symbols)} symbols)",
                conditions=[
@@ -314,19 +330,21 @@ def _save_html(rows: list[dict], job_name: str, job_num: int,
     if not rows:
         cols = []
     elif job_num == 1:
-        cols = ["Symbol","Company","Price","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","MarketCap_B","Sector"]
+        cols = ["Symbol","Company","Price","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","Day_High","Day_Low","Week_High","Week_Low","MarketCap_B","Sector"]
     else:
-        cols = ["Symbol","Company","Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","RSI_1D","Change%","MarketCap_B","Sector"]
+        cols = ["Symbol","Company","Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","RSI_1D","Change%","Day_High","Day_Low","Week_High","Week_Low","MarketCap_B","Sector"]
 
     col_headers = {
         "Symbol": "Symbol", "Company": "Company", "Price": "Price",
         "Open": "Open", "EMA20_1D": "EMA 20 (1D)", "Gap_EMA20%": "Gap EMA20%",
         "EMA200_1D": "EMA 200 (1D)", "EMA200_1W": "EMA 200 (1W)",
         "Perf_W%": "Perf W%", "RSI_1D": "RSI (1D)", "Change%": "Change%",
+        "Day_High": "Day High", "Day_Low": "Day Low",
+        "Week_High": "Wk High", "Week_Low": "Wk Low",
         "MarketCap_B": "Mkt Cap", "Sector": "Sector",
     }
 
-    right_align = {"Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","MarketCap_B"}
+    right_align = {"Price","Open","EMA20_1D","Gap_EMA20%","EMA200_1D","EMA200_1W","Perf_W%","RSI_1D","Change%","Day_High","Day_Low","Week_High","Week_Low","MarketCap_B"}
 
     thead = "".join(
         f'<th class="{"r" if c in right_align else "l"}" onclick="sortTable({i})">{col_headers.get(c,c)}</th>'
@@ -383,7 +401,7 @@ def _save_html(rows: list[dict], job_name: str, job_num: int,
                     cls = f"r {extra}".strip()
                 except (TypeError, ValueError):
                     display = "—"
-            elif c in ("Price","Open","EMA20_1D","EMA200_1D","EMA200_1W"):
+            elif c in ("Price","Open","EMA20_1D","EMA200_1D","EMA200_1W","Day_High","Day_Low","Week_High","Week_Low"):
                 try:
                     display = f"${float(val):,.2f}"
                 except (TypeError, ValueError):
