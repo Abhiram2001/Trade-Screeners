@@ -38,7 +38,7 @@ jobs:
         run: python create_icon.py
 
       - name: Build .app with PyInstaller
-        run: pyinstaller TradeScreener.spec --noconfirm
+        run: python -m PyInstaller TradeScreener.spec --noconfirm
 
       - name: Create .dmg
         run: |
@@ -95,7 +95,7 @@ jobs:
         run: python create_icon.py
 
       - name: Build .app with PyInstaller
-        run: pyinstaller TradeScreener.spec --noconfirm
+        run: python -m PyInstaller TradeScreener.spec --noconfirm
 
       - name: Create .dmg
         run: |
