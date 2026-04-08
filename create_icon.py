@@ -112,14 +112,14 @@ def create_ico():
         sizes=[(s, s) for s in sizes],
         append_images=images[1:],
     )
-    print(f"✓  {out}")
+    print(f"[OK] {out}")
 
 
 # ── macOS .icns (requires macOS + iconutil) ───────────────────────────────────
 
 def create_icns():
     if sys.platform != "darwin":
-        print("⚠  Skipping .icns — iconutil is only available on macOS")
+        print("[WARN] Skipping .icns -- iconutil is only available on macOS")
         return
 
     iconset = os.path.join(ASSETS_DIR, "icon.iconset")
@@ -141,11 +141,11 @@ def create_icns():
         check=True,
     )
     shutil.rmtree(iconset)
-    print(f"✓  {out}")
+    print(f"[OK] {out}")
 
 
 if __name__ == "__main__":
-    print("Generating icons…")
+    print("Generating icons...")
     create_ico()
     create_icns()
     print("Done.")
