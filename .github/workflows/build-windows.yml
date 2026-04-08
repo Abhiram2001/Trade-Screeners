@@ -1,0 +1,65 @@
+name: Build Windows App
+
+on:
+  # Trigger manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version label (e.g. v2.0.0)"
+        required: false
+        default: "dev"
+
+  # Trigger automatically on version tags  →  git tag v2.0.0 && git push --tags
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-windows:
+    name: Build Windows .exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install runtime + build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ".[build]"
+
+      - name: Generate app icons
+        run: python create_icon.py
+
+      - name: Build with PyInstaller
+        run: pyinstaller TradeScreener.spec --noconfirm
+
+      - name: Package into ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "dist\TradeScreener" `
+            -DestinationPath "TradeScreener-Windows-x64.zip"
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradeScreener-Windows-x64
+          path: TradeScreener-Windows-x64.zip
+          retention-days: 30
+
+      # ── Attach to GitHub Release when triggered by a version tag ─────────
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TradeScreener-Windows-x64.zip
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

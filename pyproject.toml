@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trade-screener"
+version = "2.0.0"
+description = "Desktop trade screener using TradingView data — PyQt5 GUI"
+requires-python = ">=3.9"
+dependencies = [
+    "PyQt5>=5.15",
+    "PyQt5-sip>=12.13",
+    "pandas>=2.0",
+    "requests>=2.31",
+    "openpyxl>=3.1",
+    "lxml>=4.9",
+    "html5lib>=1.1",
+    "certifi",
+    "charset-normalizer",
+    "idna",
+    "urllib3",
+    "python-dateutil",
+    "pytz",
+    "tzdata",
+]
+
+[project.optional-dependencies]
+# Install build tools:  pip install ".[build]"
+build = [
+    "pyinstaller>=6.0",
+    "pyinstaller-hooks-contrib>=2024.0",
+    "pillow>=10.0",
+]
+# Install dev tools:  pip install ".[dev]"
+dev = [
+    "pyinstaller>=6.0",
+    "pyinstaller-hooks-contrib>=2024.0",
+    "ruff",
+]
+
+[project.scripts]
+trade-screener = "ui.main_window:main"
+
+[tool.hatch.build.targets.wheel]
+# Only package the application source — no tests or build artifacts
+include = [
+    "TradeScreener.py",
+    "constants.py",
+    "config.py",
+    "api.py",
+    "exports.py",
+    "worker.py",
+    "screeners/",
+    "ui/",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

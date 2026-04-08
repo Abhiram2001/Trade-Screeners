@@ -1,0 +1,126 @@
+name: Build macOS App
+
+on:
+  # Trigger manually from the Actions tab — choose a version label
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version label (e.g. v2.0.0)"
+        required: false
+        default: "dev"
+
+  # Trigger automatically on version tags  →  git tag v2.0.0 && git push --tags
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-macos:
+    name: Build macOS .app + .dmg
+    runs-on: macos-latest          # Apple Silicon (arm64)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install runtime + build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ".[build]"
+
+      - name: Generate app icons
+        run: python create_icon.py
+
+      - name: Build .app with PyInstaller
+        run: pyinstaller TradeScreener.spec --noconfirm
+
+      - name: Create .dmg
+        run: |
+          # Prepare DMG staging folder
+          mkdir -p dist/dmg_stage
+          cp -r "dist/TradeScreener.app" "dist/dmg_stage/"
+          ln -s /Applications "dist/dmg_stage/Applications"
+
+          # Build compressed DMG
+          hdiutil create \
+            -volname "TradeScreener" \
+            -srcfolder "dist/dmg_stage" \
+            -ov -format UDZO \
+            "TradeScreener-macOS-arm64.dmg"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradeScreener-macOS-arm64
+          path: TradeScreener-macOS-arm64.dmg
+          retention-days: 30
+
+      # ── Attach to GitHub Release when triggered by a version tag ─────────
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TradeScreener-macOS-arm64.dmg
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Optional: Intel (x86_64) build on macOS 13 ───────────────────────────
+  build-macos-intel:
+    name: Build macOS .app + .dmg (Intel x86_64)
+    runs-on: macos-13              # Intel runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install runtime + build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ".[build]"
+
+      - name: Generate app icons
+        run: python create_icon.py
+
+      - name: Build .app with PyInstaller
+        run: pyinstaller TradeScreener.spec --noconfirm
+
+      - name: Create .dmg
+        run: |
+          mkdir -p dist/dmg_stage
+          cp -r "dist/TradeScreener.app" "dist/dmg_stage/"
+          ln -s /Applications "dist/dmg_stage/Applications"
+
+          hdiutil create \
+            -volname "TradeScreener" \
+            -srcfolder "dist/dmg_stage" \
+            -ov -format UDZO \
+            "TradeScreener-macOS-x86_64.dmg"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradeScreener-macOS-x86_64
+          path: TradeScreener-macOS-x86_64.dmg
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: TradeScreener-macOS-x86_64.dmg
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
