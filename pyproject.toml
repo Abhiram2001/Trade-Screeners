@@ -29,6 +29,7 @@ dependencies = [
 build = [
     "pyinstaller>=6.0",
     "pyinstaller-hooks-contrib>=2024.0",
+    "pillow>=10.0",
 ]
 # Install dev tools:  pip install ".[dev]"
 dev = [

@@ -34,6 +34,9 @@ jobs:
           pip install --upgrade pip
           pip install ".[build]"
 
+      - name: Generate app icons
+        run: python create_icon.py
+
       - name: Build with PyInstaller
         run: pyinstaller TradeScreener.spec --noconfirm
 

@@ -220,16 +220,63 @@ SYM,TSLA,SMART/AMEX
 
 ---
 
+## For End Users (No Python Required)
+
+Share the built `.dmg` (macOS) or `.zip` (Windows) with your recipients. They only need to follow these steps.
+
+### macOS
+
+1. Open `TradeScreener-macOS-arm64.dmg` (Apple Silicon) or `TradeScreener-macOS-x86_64.dmg` (Intel)
+2. Drag **TradeScreener** into the **Applications** folder shortcut in the DMG window
+3. **First launch only** — macOS will warn about an unidentified developer (app is unsigned):
+   - Right-click `TradeScreener.app` in Applications → **Open** → **Open**
+   - Or: **System Settings → Privacy & Security → Open Anyway**
+4. If you see *"TradeScreener is damaged and can't be opened"*, run this once in Terminal:
+   ```bash
+   xattr -cr /Applications/TradeScreener.app
+   ```
+   Then launch normally.
+
+### Windows
+
+1. Extract `TradeScreener-Windows-x64.zip` to any folder (e.g. `C:\Program Files\TradeScreener\`)
+2. Run **TradeScreener.exe** inside the extracted folder
+3. **First launch only** — Windows SmartScreen may warn about an unknown publisher:
+   - Click **More info** → **Run anyway**
+4. Optional: Right-click `TradeScreener.exe` → **Send to → Desktop (create shortcut)**
+
+> ⚠️ **Do not move `TradeScreener.exe` out of its folder** — it depends on the DLLs and support files alongside it.
+
+### What users need to know
+
+| Topic | Detail |
+|---|---|
+| **Internet connection** | Required — the app fetches live data from TradingView |
+| **Python** | Not required — the app is fully self-contained |
+| **Settings** | Saved automatically in `screener_settings.json` (same folder as the app) |
+| **Exported files** | Saved wherever you choose in the file dialog |
+| **Supported OS** | macOS 12+  ·  Windows 10 / 11 (64-bit) |
+
+---
+
 ## Building a Desktop App Locally
 
 ### 1. Install build dependencies
 
 ```bash
-# Installs PyInstaller on top of the runtime dependencies
+# Installs PyInstaller + Pillow on top of the runtime dependencies
 pip install ".[build]"
 ```
 
-### 2. Build
+### 2. Generate icons
+
+```bash
+python create_icon.py
+```
+
+This creates `assets/icon.ico` (Windows) and `assets/icon.icns` (macOS).
+
+### 3. Build
 
 ```bash
 # macOS — produces dist/TradeScreener.app
