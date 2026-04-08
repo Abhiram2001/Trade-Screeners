@@ -116,7 +116,7 @@ Trade-Screeners/
 
 ## Prerequisites
 
-- **Python 3.10 or higher**
+- **Python 3.9 or higher**
 - **Git**
 - macOS 12+ or Windows 10+
 
@@ -156,6 +156,14 @@ pip install .
 ```
 
 This installs all runtime dependencies declared in `pyproject.toml`.
+
+**Install command reference:**
+
+| Command | Installs | Who needs it |
+|---|---|---|
+| `pip install .` | PyQt5, pandas, requests, openpyxl… | Everyone running the app |
+| `pip install ".[build]"` | Above + **PyInstaller** | Developers building the `.app` / `.exe` |
+| `pip install ".[dev]"` | Above + PyInstaller + **ruff** linter | Developers contributing code |
 
 ---
 
@@ -217,6 +225,7 @@ SYM,TSLA,SMART/AMEX
 ### 1. Install build dependencies
 
 ```bash
+# Installs PyInstaller on top of the runtime dependencies
 pip install ".[build]"
 ```
 

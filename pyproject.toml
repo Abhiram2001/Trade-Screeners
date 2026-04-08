@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "trade-screener"
 version = "2.0.0"
 description = "Desktop trade screener using TradingView data — PyQt5 GUI"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "PyQt5>=5.15",
     "PyQt5-sip>=12.13",
