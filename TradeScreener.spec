@@ -12,17 +12,21 @@ Build locally:
 """
 
 import sys
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 
 block_cipher = None
 
 # ── Collect all submodules from local packages ────────────────────────────────
 # This ensures dynamically-registered screeners are always bundled.
+lxml_mods, lxml_bins, lxml_data             = collect_all("lxml")
+html5lib_mods, html5lib_bins, html5lib_data = collect_all("html5lib")
+
 hidden = (
     collect_submodules("screeners")
     + collect_submodules("ui")
     + collect_submodules("openpyxl")
-    + collect_submodules("lxml")
+    + lxml_mods
+    + html5lib_mods
     + [
         # PyQt5 core (hooks usually handle these, but be explicit)
         "PyQt5.sip",
@@ -31,17 +35,12 @@ hidden = (
         "PyQt5.QtWidgets",
         "PyQt5.QtNetwork",
         "PyQt5.QtPrintSupport",
-        # pandas HTML parser backends
-        "lxml.etree",
-        "lxml.html",
-        "html5lib",
         # requests / network stack
         "requests",
         "urllib3",
         "certifi",
         "charset_normalizer",
         "idna",
-        "ssl",
         # Local app modules (explicit, for safety)
         "constants",
         "config",
@@ -50,12 +49,26 @@ hidden = (
         "worker",
     ]
 )
+# Guard against None / non-string entries from hook helpers
+hidden = [m for m in hidden if isinstance(m, str)]
+
+# Bundle certifi SSL certs so requests verifies HTTPS in the frozen app
+datas = (
+    [d for d in lxml_data    if isinstance(d, tuple)]
+    + [d for d in html5lib_data if isinstance(d, tuple)]
+    + collect_data_files("certifi")
+)
+
+_extra_bins = (
+    [b for b in lxml_bins    if isinstance(b, tuple)]
+    + [b for b in html5lib_bins if isinstance(b, tuple)]
+)
 
 a = Analysis(
     ["TradeScreener.py"],
     pathex=["."],          # repo root on sys.path so local packages are found
-    binaries=[],
-    datas=[],
+    binaries=_extra_bins,
+    datas=datas,
     hiddenimports=hidden,
     hookspath=[],
     hooksconfig={},

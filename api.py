@@ -1,22 +1,37 @@
 """TradingView API helpers: universe fetching and scanner calls."""
 
-import ssl
-import urllib.request
+import io
 
 import pandas as pd
 import requests
 
 from constants import TV_URL
 
+_WIKI_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
 
 def get_index_tickers() -> tuple:
-    """Return (sp500_set, nasdaq100_set)."""
-    ctx = ssl._create_unverified_context()
+    """Return (sp500_set, nasdaq100_set).
 
-    def _fetch(url, idx, col):
-        req  = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        html = urllib.request.urlopen(req, context=ctx).read()
-        return set(pd.read_html(html)[idx][col].tolist())
+    Uses requests so SSL certificates bundled via certifi are used correctly
+    inside a PyInstaller-frozen app.  The HTML is parsed with lxml (fastest)
+    and html5lib as a fallback so the build always finds a working parser.
+    """
+
+    def _fetch(url: str, table_idx: int, col: str) -> set:
+        resp = requests.get(url, headers=_WIKI_HEADERS, timeout=30, verify=True)
+        resp.raise_for_status()
+        # io.StringIO keeps lxml / html5lib working in frozen env
+        tables = pd.read_html(io.StringIO(resp.text))
+        return set(tables[table_idx][col].tolist())
 
     sp500  = _fetch("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", 0, "Symbol")
     nasdaq = _fetch("https://en.wikipedia.org/wiki/Nasdaq-100", 4, "Ticker")

@@ -40,21 +40,22 @@ jobs:
       - name: Build with PyInstaller
         run: python -m PyInstaller TradeScreener.spec --noconfirm
 
-      - name: Package into ZIP
-        shell: pwsh
-        run: |
-          Compress-Archive `
-            -Path "dist\TradeScreener" `
-            -DestinationPath "TradeScreener-Windows-x64.zip"
-
-      - name: Upload ZIP artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: TradeScreener-Windows-x64
-          path: TradeScreener-Windows-x64.zip
+          path: dist\TradeScreener\
           retention-days: 30
 
       # ── Attach to GitHub Release when triggered by a version tag ─────────
+      - name: Package into ZIP for release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "dist\TradeScreener\*" `
+            -DestinationPath "TradeScreener-Windows-x64.zip"
+
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
